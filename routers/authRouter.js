@@ -9,7 +9,7 @@ authRouter.post("/signup", async (req, res) => {
   const { firstName, lastName, email, password } = req.body;
   try {
     const checkingEmail = await pool.query(
-      "SELECT FROM users WHERE email = $1",
+      "SELECT * FROM users WHERE email = $1",
       [email]
     );
     if (checkingEmail.rowCount) {
@@ -24,7 +24,9 @@ authRouter.post("/signup", async (req, res) => {
         firstName,
         email,
       });
-      res.cookie("jwt", token, { httpOnly: true });
+      console.log(token);
+      res.cookie("jwt", token);
+
       res.status(200).json({ message: "Signup Successful" });
     }
   } catch (error) {
