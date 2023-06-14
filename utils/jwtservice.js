@@ -1,12 +1,17 @@
-const bcrypt = require("bcrypt");
-const saltRounds = 10;
+const jwt = require("jsonwebtoken");
 
-export const hash = (plainText) => {
-  const hashedValue = bcrypt.hashSync(plainText, saltRounds);
-  return hashedValue;
+const sign = (payload) => {
+  return jwt.sign(payload, process.env.JWT_SECRET, {
+    expiresIn: "3 hours",
+  });
 };
 
-export const compareHash = (plainText, existingHash) => {
-  const result = bcrypt.compareSync(plainText, existingHash);
-  return result;
+const verify = (token) => {
+  try {
+    return jwt.verify(token, process.env.JWT_SECRET);
+  } catch {
+    return false;
+  }
 };
+
+module.exports = { sign, verify };
