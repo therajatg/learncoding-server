@@ -1,6 +1,6 @@
 const express = require("express");
 const pool = require("../db/db");
-const { hash } = require("../utils/hash");
+const { hash, compareHash } = require("../utils/hash");
 const { sign } = require("../utils/jwtservice");
 
 const authRouter = express.Router();
@@ -14,7 +14,6 @@ authRouter.post("/signup", async (req, res) => {
     );
     if (checkingEmail.rowCount) {
       res.status(400).json({ message: "Email already registered" });
-      console.log(checkingEmail);
     } else {
       await pool.query(
         "INSERT INTO users (firstname, lastname, email, password) VALUES ($1, $2, $3, $4)",
@@ -24,9 +23,7 @@ authRouter.post("/signup", async (req, res) => {
         firstName,
         email,
       });
-      console.log(token);
       res.cookie("jwt", token);
-
       res.status(200).json({ message: "Signup Successful" });
     }
   } catch (error) {
@@ -34,30 +31,25 @@ authRouter.post("/signup", async (req, res) => {
   }
 });
 
-// authRouter.post("/login", async (req, res) => {
-//   const { email, password } = req.body;
-//   const admin = await db
-//     .selectFrom("admin")
-//     .where("admin.email", "=", email)
-//     .selectAll()
-//     .executeTakeFirst();
-
-//   if (admin) {
-//     // console.log(admin.password);
-//     const isPasswordValid = compareHash(password, admin.password);
-//     if (isPasswordValid) {
-//       //   res.send("valid user");
-//       const token = sign({
-//         sub: "admin",
-//         email,
-//       });
-//       res.cookie("jwt", token, { httpOnly: true });
-//     } else {
-//       res.status(400).send("Invalid User");
-//     }
-//   } else {
-//     res.status(400).send("Invalid User");
-//   }
-// });
+authRouter.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+  const user = await pool.query("SELECT * FROM users WHERE email = $1", [
+    email,
+  ]);
+  if (user.rowCount) {
+    const isPasswordValid = compareHash(password, user.password);
+    if (isPasswordValid) {
+      const token = sign({
+        sub: "admin",
+        email,
+      });
+      res.cookie("jwt", token);
+    } else {
+      res.status(400).json({ message: "Invalid User" });
+    }
+  } else {
+    res.status(400).json({ message: "Invalid User" });
+  }
+});
 
 module.exports = { authRouter };
