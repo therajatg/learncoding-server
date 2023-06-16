@@ -2,6 +2,7 @@ const express = require("express");
 const pool = require("../db/db");
 const { hash, compareHash } = require("../utils/hash");
 const { sign } = require("../utils/jwtservice");
+const { passiveAuth } = require("../middlewares/passiveAuth");
 
 const authRouter = express.Router();
 
@@ -33,22 +34,36 @@ authRouter.post("/signup", async (req, res) => {
 
 authRouter.post("/login", async (req, res) => {
   const { email, password } = req.body;
-  const user = await pool.query("SELECT * FROM users WHERE email = $1", [
-    email,
-  ]);
-  if (user.rowCount) {
-    const isPasswordValid = compareHash(password, user.password);
-    if (isPasswordValid) {
-      const token = sign({
-        sub: "admin",
-        email,
-      });
-      res.cookie("jwt", token);
+  try {
+    const user = await pool.query("SELECT * FROM users WHERE email = $1", [
+      email,
+    ]);
+    if (user.rowCount) {
+      const isPasswordValid = compareHash(password, user.rows[0].password);
+      if (isPasswordValid) {
+        const token = sign({
+          firstname: user.rows[0].firstname,
+          email,
+        });
+        res.cookie("jwt", token);
+        res.status(200).json({ message: "Login Successful" });
+      } else {
+        res.status(400).json({ message: "Invalid User" });
+      }
     } else {
       res.status(400).json({ message: "Invalid User" });
     }
-  } else {
+  } catch (error) {
     res.status(400).json({ message: "Invalid User" });
+  }
+});
+
+authRouter.post("/logout", async (req, res) => {
+  try {
+    res.clearCookie("jwt");
+    res.status(200).json({ message: "successfully logged out" });
+  } catch (error) {
+    res.status(500).json({ message: "Internal Server Error" });
   }
 });
 

@@ -1,6 +1,5 @@
 const express = require("express");
 const pool = require("../db/db");
-const { verify } = require("../utils/jwtservice");
 const { gatedAccess } = require("../middlewares/gatedAccess");
 
 const historyRouter = express.Router();
@@ -11,7 +10,7 @@ historyRouter.get("/", gatedAccess, async (req, res) => {
       req.jwt.email,
     ]);
     const userId = user.rows[0]._id;
-
+    console.log("userId", userId);
     const historyVideos = await pool.query(
       "SELECT * FROM history LEFT JOIN video ON history.video_id = video._id WHERE user_id = $1 ORDER BY timestamp ASC",
       [userId]

@@ -8,6 +8,8 @@ const { likeRouter } = require("./routers/likeRouter");
 const { playlistRouter } = require("./routers/playlistRouter");
 const { watchlaterRouter } = require("./routers/watchlaterRouter");
 const { authRouter } = require("./routers/authRouter");
+const { passiveAuth } = require("./middlewares/passiveAuth");
+const { videosRouter } = require("./routers/videosRouter");
 
 const app = express();
 
@@ -24,11 +26,7 @@ app.use("/api/user/likes", likeRouter);
 app.use("/api/user/playlists", playlistRouter);
 app.use("/api/user/watchlater", watchlaterRouter);
 app.use("/api/auth", authRouter);
-
-app.get("/api/videos", async (req, res) => {
-  let allVideos = await pool.query("SELECT * FROM video");
-  res.status(200).json({ videos: allVideos.rows });
-});
+app.use("/api/videos", videosRouter);
 
 app.get("/api/categories", async (req, res) => {
   try {
