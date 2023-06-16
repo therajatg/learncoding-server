@@ -4,6 +4,9 @@ CREATE TABLE users (_id SERIAL PRIMARY KEY, email TEXT NOT NULL UNIQUE, password
 CREATE TABLE category (_id SERIAL PRIMARY KEY, categoryName TEXT NOT NULL);
 CREATE TABLE video (_id TEXT PRIMARY KEY, title TEXT NOT NULL, thumbnail TEXT, category_id INTEGER REFERENCES category(_id));
 CREATE TABLE history (user_id INTEGER REFERENCES users(_id), video_id TEXT REFERENCES video(_id), timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
+CREATE TABLE watchlater(user_id INTEGER REFERENCES users(_id), video_id TEXT REFERENCES video(_id), timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
+CREATE TABLE liked(user_id INTEGER REFERENCES users(_id), video_id TEXT REFERENCES video(_id), timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
+
 
 -- CREATE TABLE watchlater
 -- CREATE TABLE like
