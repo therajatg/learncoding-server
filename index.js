@@ -10,6 +10,7 @@ const { watchlaterRouter } = require("./routers/watchlaterRouter");
 const { authRouter } = require("./routers/authRouter");
 const { passiveAuth } = require("./middlewares/passiveAuth");
 const { videosRouter } = require("./routers/videosRouter");
+const { verify, sign } = require("./utils/jwtservice");
 
 const app = express();
 
@@ -34,6 +35,27 @@ app.get("/api/categories", async (req, res) => {
     res.status(200).json({ categories: categories.rows });
   } catch (error) {
     res.status(500).json("Internal Server Error");
+  }
+});
+
+app.get("/api/refresh", async (req, res) => {
+  console.log("refresh");
+  try {
+    const verifiedRefreshToken = verify(req.cookies.jwt);
+    if (verifiedRefreshToken) {
+      const newAccessToken = sign({
+        firstName: verifiedRefreshToken.firstName,
+        email: verifiedRefreshToken.email,
+      });
+      res.status(200).json({
+        firstName: verifiedRefreshToken.firstName,
+        accessToken: newAccessToken,
+      });
+    } else {
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  } catch (error) {
+    res.status(403).json({ message: "Invalid Refresh Token" });
   }
 });
 

@@ -1,15 +1,16 @@
 const { verify } = require("../utils/jwtservice");
 
 const gatedAccess = (req, res, next) => {
-  const jwtCookie = req.cookies.jwt;
-  const payload = verify(jwtCookie);
+  console.log(req.headers.authorization);
 
+  const authHeader = req.headers["authorization"];
+  const accessToken = authHeader && authHeader.split(" ")[1];
+  const payload = verify(accessToken, "access");
   if (payload) {
     req.jwt = payload;
     next();
   } else {
-    res.clearCookie("jwt");
-    res.status(401).json({ message: "Unauthorized Request" });
+    res.status(403).json({ message: "Unauthorized Request" });
   }
 };
 

@@ -5,6 +5,7 @@ const { gatedAccess } = require("../middlewares/gatedAccess");
 const historyRouter = express.Router();
 
 historyRouter.get("/", gatedAccess, async (req, res) => {
+  console.log("cdcdwe");
   try {
     const user = await pool.query("SELECT _id FROM users WHERE email = $1", [
       req.jwt.email,

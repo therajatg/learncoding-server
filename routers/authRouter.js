@@ -20,12 +20,23 @@ authRouter.post("/signup", async (req, res) => {
         "INSERT INTO users (firstname, lastname, email, password) VALUES ($1, $2, $3, $4)",
         [firstName, lastName, email, hash(password)]
       );
-      const token = sign({
-        firstName,
-        email,
-      });
-      res.cookie("jwt", token);
-      res.status(200).json({ message: "Signup Successful" });
+      const accessToken = sign(
+        {
+          firstName,
+          email,
+        },
+        "access"
+      );
+
+      const refreshToken = sign(
+        {
+          firstName,
+          email,
+        },
+        "refresh"
+      );
+      res.cookie("refreshToken", refreshToken, { httpOnly: true });
+      res.status(200).json({ accessToken, firstName });
     }
   } catch (error) {
     res.status(500).json({ message: "Something went wrong" });
@@ -41,12 +52,25 @@ authRouter.post("/login", async (req, res) => {
     if (user.rowCount) {
       const isPasswordValid = compareHash(password, user.rows[0].password);
       if (isPasswordValid) {
-        const token = sign({
-          firstname: user.rows[0].firstname,
-          email,
-        });
-        res.cookie("jwt", token);
-        res.status(200).json({ message: "Login Successful" });
+        const firstName = user.rows[0].firstname;
+        const accessToken = sign(
+          {
+            firstName,
+            email,
+          },
+          "access"
+        );
+
+        const refreshToken = sign(
+          {
+            firstName,
+            email,
+          },
+          "refresh"
+        );
+
+        res.cookie("refreshToken", refreshToken, { httpOnly: true });
+        res.status(200).json({ accessToken, firstName });
       } else {
         res.status(400).json({ message: "Invalid User" });
       }
@@ -60,7 +84,7 @@ authRouter.post("/login", async (req, res) => {
 
 authRouter.post("/logout", async (req, res) => {
   try {
-    res.clearCookie("jwt");
+    res.clearCookie("refreshToken");
     res.status(200).json({ message: "successfully logged out" });
   } catch (error) {
     res.status(500).json({ message: "Internal Server Error" });

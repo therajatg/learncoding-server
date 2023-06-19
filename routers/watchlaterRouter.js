@@ -1,5 +1,6 @@
 const express = require("express");
 const { gatedAccess } = require("../middlewares/gatedAccess");
+const pool = require("../db/db");
 
 const watchlaterRouter = express.Router();
 
@@ -13,7 +14,7 @@ watchlaterRouter.get("/", gatedAccess, async (req, res) => {
       "SELECT * FROM watchlater LEFT JOIN video ON watchlater.video_id = video._id WHERE user_id = $1 ORDER BY timestamp ASC",
       [userId]
     );
-    res.status(200).json({ history: historyVideos.rows });
+    res.status(200).json({ watchlater: watchLaterVideos.rows });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Something went wrong" });
@@ -31,9 +32,12 @@ watchlaterRouter.post("/", gatedAccess, async (req, res) => {
       "INSERT INTO watchlater (user_id, video_id) VALUES ($1, $2)",
       [userId, videoId]
     );
-    res
-      .status(200)
-      .json({ message: "Video successfully added to watch later" });
+
+    const watchLaterVideos = await pool.query(
+      "SELECT * FROM watchlater LEFT JOIN video ON watchlater.video_id = video._id WHERE user_id = $1 ORDER BY timestamp ASC",
+      [userId]
+    );
+    res.status(200).json({ watchLater: watchLaterVideos.rows });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Something went wrong" });

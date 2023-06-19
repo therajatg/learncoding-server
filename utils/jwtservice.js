@@ -1,14 +1,25 @@
 const jwt = require("jsonwebtoken");
 
-const sign = (payload) => {
-  return jwt.sign(payload, process.env.JWT_SECRET, {
-    expiresIn: "3 hours",
-  });
+const sign = (payload, type) => {
+  return jwt.sign(
+    payload,
+    type === "access"
+      ? process.env.JWT_ACCESS_SECRET
+      : process.env.JWT_REFRESH_SECRET,
+    {
+      expiresIn: type === "access" ? "5s" : "24 hours",
+    }
+  );
 };
 
-const verify = (token) => {
+const verify = (token, type) => {
   try {
-    return jwt.verify(token, process.env.JWT_SECRET);
+    return jwt.verify(
+      token,
+      type === "access"
+        ? process.env.JWT_ACCESS_SECRET
+        : process.env.JWT_REFRESH_SECRET
+    );
   } catch {
     return false;
   }
